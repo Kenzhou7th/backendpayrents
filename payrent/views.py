@@ -26,7 +26,7 @@ class TenantViewSet(viewsets.ModelViewSet):
     queryset = Tenant.objects.all()
     serializer_class = TenantSerializer
 
-@api_view(['GET'])
+#@api_view(['GET'])
 def get_tenants_by_room(request, room_id):
     try:
         room = Room.objects.get(id=room_id)
