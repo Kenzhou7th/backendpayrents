@@ -27,8 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'backendpayrents.onrender.com',  # Add your Render backend domain
-    '127.0.0.1',  # Allow localhost for local testing
-    'localhost',  # Allow localhost for local testing
 ]
 
 
