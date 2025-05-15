@@ -7,24 +7,9 @@ class RoomSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TenantSerializer(serializers.ModelSerializer):
-    billingHistory = serializers.SerializerMethodField()
-
     class Meta:
         model = Tenant
-        fields = '__all__'
-
-    def get_billingHistory(self, obj):
-        # Example: Return dummy billing history
-        return [
-            {
-                "billingId": 1,
-                "dueDate": "2025-05-15",
-                "rentFee": 5000,
-                "waterBill": 500,
-                "electricBill": 1000,
-                "status": "Unpaid",
-            }
-        ]
+        fields = ['id', 'name', 'email', 'phone', 'move_in_date', 'room']
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:

@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view
 from .models import Room, Tenant, Notification, Report
 from .serializers import RoomSerializer, TenantSerializer, NotificationSerializer, ReportSerializer
 
@@ -25,6 +26,16 @@ class TenantViewSet(viewsets.ModelViewSet):
     queryset = Tenant.objects.all()
     serializer_class = TenantSerializer
 
+@api_view(['GET'])
+def get_tenants_by_room(request, room_id):
+    try:
+        room = Room.objects.get(id=room_id)
+        tenants = room.tenants.all()  # Use the related_name defined in the ForeignKey
+        serializer = TenantSerializer(tenants, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Room.DoesNotExist:
+        return Response({'error': 'Room not found'}, status=status.HTTP_404_NOT_FOUND)
+
 # Notification ViewSet
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
@@ -37,6 +48,8 @@ class ReportViewSet(viewsets.ModelViewSet):
 
 # Dashboard View
 class DashboardView(APIView):
+    permission_classes = [AllowAny]  # Allow unauthenticated access
+
     def get(self, request):
         # Aggregate data for the dashboard
         total_rooms = Room.objects.count()

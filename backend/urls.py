@@ -17,7 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('payrent.urls')),  # Include the URLs from the payrent app
+    path('api/', include('payrent.urls')),
 ]
