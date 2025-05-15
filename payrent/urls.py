@@ -18,3 +18,4 @@ urlpatterns = [
     path('dashboard/', DashboardView.as_view(), name='dashboard'),  # Dashboard endpoint
     path('rooms/<int:room_id>/tenants/', get_tenants_by_room, name='get-tenants-by-room'),
 ]
+
