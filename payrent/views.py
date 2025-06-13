@@ -6,68 +6,74 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view
 from rest_framework import status
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from .models import Room, Tenant, Notification, Report
 from .serializers import RoomSerializer, TenantSerializer, NotificationSerializer, ReportSerializer
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from .utils.sms import send_sms
 
+
+# ✅ TEST SMS ENDPOINT
 @api_view(['GET'])
 def test_sms(request):
     response = send_sms("09977500849", "Test SMS from PayRent.")
     return Response(response)
 
-# Room ViewSet
+
+# ✅ ROOMS
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
-    permission_classes = [AllowAny]  # Allow unauthenticated access for testing
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        print("Incoming request data:", request.data)  # Log the incoming data
+        print("Incoming request data:", request.data)
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
-            print("Validation errors:", serializer.errors)  # Log validation errors
+            print("Validation errors:", serializer.errors)
             return Response(serializer.errors, status=400)
         self.perform_create(serializer)
         return Response(serializer.data, status=201)
 
-# Tenant ViewSet
+
+# ✅ TENANTS
 class TenantViewSet(viewsets.ModelViewSet):
     queryset = Tenant.objects.all()
     serializer_class = TenantSerializer
 
-#@api_view(['GET'])
+
+@api_view(['GET'])
 def get_tenants_by_room(request, room_id):
     try:
         room = Room.objects.get(id=room_id)
-        tenants = room.tenants.all()  # Use the related_name defined in the ForeignKey
+        tenants = room.tenants.all()
         serializer = TenantSerializer(tenants, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Room.DoesNotExist:
         return Response({'error': 'Room not found'}, status=status.HTTP_404_NOT_FOUND)
 
-# Notification ViewSet
+
+# ✅ NOTIFICATIONS
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
 
-# Report ViewSet
+
+# ✅ REPORTS
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
 
-# Dashboard View
+
+# ✅ DASHBOARD DATA
 class DashboardView(APIView):
-    permission_classes = [AllowAny]  # Allow unauthenticated access
+    permission_classes = [AllowAny]
 
     def get(self, request):
-        # Aggregate data for the dashboard
         total_rooms = Room.objects.count()
         active_tenants = Tenant.objects.count()
         pending_reports = Report.objects.filter(description__icontains="pending").count()
-
-        # Return the aggregated data
         data = {
             "total_rooms": total_rooms,
             "active_tenants": active_tenants,
@@ -75,9 +81,10 @@ class DashboardView(APIView):
         }
         return Response(data)
 
-# Forgot Password View
+
+# ✅ PASSWORD RESET (STEP 1) – Send Reset Link
 class ForgotPasswordView(APIView):
-    permission_classes = [AllowAny]  # Allow unauthenticated access
+    permission_classes = [AllowAny]
 
     def post(self, request):
         email = request.data.get('email')
@@ -86,17 +93,45 @@ class ForgotPasswordView(APIView):
 
         try:
             user = User.objects.get(email=email)
-            # Generate a password reset link (example only, replace with actual logic)
-            reset_link = f"http://your-frontend-url/reset-password/{user.id}"
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+            reset_link = f"http://localhost:3000/reset-password?uid={uid}&token={token}"  # replace with frontend URL
+
             send_mail(
                 'Password Reset Request',
                 f'Click the link to reset your password: {reset_link}',
-                'noreply@yourdomain.com',  # Replace with your email
+                'noreply@yourdomain.com',
                 [email],
                 fail_silently=False,
             )
-            return Response({'message': 'Password reset link sent to your email'}, status=status.HTTP_200_OK)
+
+            return Response({'message': 'Password reset link sent'}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'error': 'User with this email does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 
+# ✅ PASSWORD RESET (STEP 2) – Confirm Reset and Save New Password
+class ResetPasswordConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        uid = request.data.get('uid')
+        token = request.data.get('token')
+        new_password = request.data.get('new_password')
+
+        if not all([uid, token, new_password]):
+            return Response({'error': 'Missing fields'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uid))
+            user = User.objects.get(pk=uid)
+
+            if default_token_generator.check_token(user, token):
+                user.set_password(new_password)
+                user.save()
+                return Response({'message': 'Password has been reset successfully'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid or expired token'}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid user'}, status=status.HTTP_404_NOT_FOUND)
