@@ -1,31 +1,23 @@
-import environ
 import os
-
-env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
-
-SEMAPHORE_API_KEY = env("SEMAPHORE_API_KEY")
-SEMAPHORE_SENDER_NAME = env("SEMAPHORE_SENDER_NAME")
-
-
 from pathlib import Path
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+# Load environment variables from .env file
+SEMAPHORE_API_KEY = env("SEMAPHORE_API_KEY")
+SEMAPHORE_SENDER_NAME = env("SEMAPHORE_SENDER_NAME")
 
-# SECURITY WARNING: keep the secret key used in production secret!
+
+# Django settings
 SECRET_KEY = 'django-insecure-v6g+ajq7jrt39kl%1vnz=tij+el1+)x674deprwsa-f5amu6p7'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = [
-    'backendpayrents.onrender.com',  # Add your Render backend domain
-]
+ALLOWED_HOSTS = ['backendpayrents.onrender.com']
 
 
 # Application definition
