@@ -1,9 +1,12 @@
 import requests
 from django.conf import settings
+from payrent.models import SMSLog
 
 def send_sms(phone_number, message):
-    url = "https://api.semaphore.co/api/v4/messages"
+    if not phone_number.startswith("+"):
+        phone_number = "+63" + phone_number.lstrip("0")
 
+    url = "https://api.semaphore.co/api/v4/messages"
     payload = {
         "apikey": settings.SEMAPHORE_API_KEY,
         "number": phone_number,
@@ -13,7 +16,12 @@ def send_sms(phone_number, message):
 
     response = requests.post(url, data=payload)
 
-    if response.status_code == 200:
-        return response.json()
-    else:
-        return {"error": response.text}
+    SMSLog.objects.create(
+        recipient=phone_number,
+        message=message,
+        status="Sent" if response.status_code == 200 else f"Failed: {response.text}"
+    )
+
+    return response.json() if response.status_code == 200 else {"error": response.text}
+#     return Response({"message": "SMS sent successfully"}, status=status.HTTP_200_OK)
+#

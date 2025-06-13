@@ -32,8 +32,7 @@ class Tenant(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='tenants')
 
     def save(self, *args, **kwargs):
-        # Hash the password before saving
-        if not self.pk:  # Only hash the password for new tenants
+        if not self.pk:
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
@@ -62,9 +61,24 @@ class Report(models.Model):
     def __str__(self):
         return self.title
 
-from rest_framework import serializers
+# Rent Model
+class Rent(models.Model):
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='rents')
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='rents')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    due_date = models.DateField()
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-class RoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Room
-        fields = '__all__'
+    def __str__(self):
+        return f"Rent for {self.tenant} - ₱{self.amount} due {self.due_date}"
+
+# SMS Log Model
+class SMSLog(models.Model):
+    recipient = models.CharField(max_length=20)
+    message = models.TextField()
+    status = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.recipient} - {self.status}"
