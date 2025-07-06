@@ -17,8 +17,8 @@ SEMAPHORE_SENDER_NAME = env("SEMAPHORE_SENDER_NAME")
 # Django settings
 SECRET_KEY = 'django-insecure-v6g+ajq7jrt39kl%1vnz=tij+el1+)x674deprwsa-f5amu6p7'
 DEBUG = True
-ALLOWED_HOSTS = ['backendpayrents.onrender.com']
-
+# ALLOWED_HOSTS = ['backendpayrents.onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -123,7 +123,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    "https://alainaapolinario.github.io",  # GitHub Pages URL
+#    "https://alainaapolinario.github.io",  # GitHub Pages URL
+    "http://localhost:3000",  # 
 ]
 
 CORS_ALLOW_CREDENTIALS = True

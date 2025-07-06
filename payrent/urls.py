@@ -1,7 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
 from .views import (
     RoomViewSet,
     TenantViewSet,
@@ -10,7 +9,8 @@ from .views import (
     DashboardView,
     get_tenants_by_room,
     ForgotPasswordView,
-    test_sms
+    test_sms,
+    get_room_count
 )
 
 router = DefaultRouter()
@@ -26,4 +26,6 @@ urlpatterns = [
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('rooms/<int:room_id>/tenants/', get_tenants_by_room, name='get-tenants-by-room'),
     path('test-sms/', test_sms),
+    path('room-count/', get_room_count, name='room_count'),
+    path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
 ]

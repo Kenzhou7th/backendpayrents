@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, RegexValidator
 from django.contrib.auth.hashers import make_password
 
-# Room Model
 class Room(models.Model):
     pad_number = models.CharField(max_length=50)
     monthly_fee = models.DecimalField(max_digits=10, decimal_places=2)
@@ -18,11 +17,10 @@ class Room(models.Model):
     def __str__(self):
         return f"Room {self.pad_number}"
 
-# Tenant Model
 class Tenant(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    username = models.CharField(max_length=100, unique=True)
+    username = models.EmailField(max_length=100, unique=True)
     contact_number = models.CharField(
         max_length=15,
         validators=[RegexValidator(r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")]
@@ -39,7 +37,6 @@ class Tenant(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-# Notification Model
 class Notification(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
@@ -50,7 +47,6 @@ class Notification(models.Model):
     def __str__(self):
         return self.title
 
-# Report Model
 class Report(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='reports', null=True, blank=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='reports', null=True, blank=True)
@@ -61,7 +57,6 @@ class Report(models.Model):
     def __str__(self):
         return self.title
 
-# Rent Model
 class Rent(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='rents')
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='rents')
@@ -73,7 +68,6 @@ class Rent(models.Model):
     def __str__(self):
         return f"Rent for {self.tenant} - ₱{self.amount} due {self.due_date}"
 
-# SMS Log Model
 class SMSLog(models.Model):
     recipient = models.CharField(max_length=20)
     message = models.TextField()
